@@ -1,0 +1,218 @@
+control L = to clear 
+
+MySQL workbench is alot easir to read it's a lot easier to write in and it's a better experience then working in the shell 
+
+create a new user because right now we're logged in as root and when you create a new database for a new
+application you probably want to have a specific user for that database  
+
+CREATE USER 'musaa-test'@'localhost' IDENTIFIED BY '123456';
+
+use UPPERCASE for sql for naming convention 
+
+
+mysql> CREATE USER 'musaa-test'@'localhost' IDENTIFIED BY '123456';
+mysql> SELECT user, host FROM mysql.user;
+
+after this you want to give this user some privileges because right now they can't really do anything you want 
+to basically make the musaa user an admin so that he can create new databases, update data in other databases.
+
+You can go to the documentation if you want to see like the specific privileges you can add. For now im were justing 
+granting all privileges - 
+
+GRANT ALL PRIVILEGES ON * . * TO 'musaa'@'localhost';
+
+once you do the above you want to actually flush privileges which will clear the grants table  
+
+check the privileges for a certain user 
+
+SHOW GRANTS FOR 'musaa-test'@'localhost';
+
+remember to use semi colon, if you don't it will be multi line  
+
+to exit type exit;
+
+CREATE DATABASE acme; - to create database 
+
+SHOW DATABASES; - to show database 
+
+USE acme; to use database 
+
+SHOW TABLES; to show tables 
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT, 
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    email VARCHAR(75),
+    password VARCHAR(255),
+    location VARCHAR(100),
+    dept VARCHAR(75),
+    is_admin TINYINT(1),
+    register_date DATETIME,
+    PRIMARY KEY(id)
+);
+
+
+auto increment means is I want it so that ID is going to be unique and it's going to get added automatically 
+
+is_admin say that this application we're building you can have admin users this is going to be a TINYINT which is uses a boolean and it's going to be just one character so it can be either be a 1 or a 0 so 1 if it's an admin 0 if not       
+
+DATETIME field 
+primary key and that's gonna be the ID 
+
+SHOW TABLES - which shows us the tables 
+
+at this point we the users table but we don't actual have any users 
+
+DROP TABLE tablename - to get rid of a table 
+DROP DATABASE databasename - to get rid of a whole database 
+
+after clicking into a database - 
+INSERT INTO users(first_name, last_name, email, password, location, dept, is_admin, register_date)
+values ('John', 'Doe', 'john@gmail.com', '123456', 'London', 'development' , 1 , now() );
+
+usually you want the password to be encryted some how 
+now() time now function 
+
+MySQL work bench for a graphical interface 
+
+SELECT * FROM users WHERE location='massachusetts' AND dept="sales";
+
+SELECT * FROM users WHERE is_admin > 0; aka are there any admins true or false 
+
+DELETE FROM users WHERE id='6';
+
+null means empty 
+
+UPDATE users GET email = 'freddy@gmail.com' WHERE id = 2;
+
+above is all basic crud = create, read, update, delete 
+
+ALTER TABLE users ADD age VARCHAR(3); add a new column 
+ALTER TABLE users MODIFY COLUMN age INT(3); // now the column is a interger 
+
+MySQL is like HTML and CSS 
+
+SELECT * FROM users ORDER BY last_name ASC; // order names from a-z
+SELECT * FROM users ORDER BY last_name DESC; // order names from z-a 
+
+SELECT CONCAT(first_name, ' ', last_name) AS 'Name', dept FROM users; ; // add first name and last name in a column called name and just added dept column 
+
+SELECT DISTINCT location FROM users; //different locations avialable in the table  
+
+SELECT * FROM users WHERE age BETWEEN 50 AND 100;
+
+LIKE is used for full text searching for instance if you're wanting to search a blog post for a spefic word or something like that 
+
+SELECT * FROM users WHERE dept LIKE 'd%';  // 'd%' if it starts with a d 
+SELECT * FROM users WHERE dept LIKE '%T'; // '%t' if it ends with a t   
+SELECT * FROM users WHERE dept LIKE '%es%'; // doesnt matter if it's beginning end or end because of where the %% signs are 
+SELECT * FROM users WHERE dept NOT LIKE '%es%';  // that doesnt match 
+SELECT * FROM users WHERE dept IN('design', 'sales'); // for multiple department searchers 
+
+indexes are used on columns and tables to speed up queries and find things more quickly and effiently, you can think of them as an index in a book 
+
+primary keys like our ID are indexed but we can add custom indexes on other fields and you want to put indexes on fields that you're going to be searching by a lot within your whatever it is your application 
+
+CREATE INDEX LIndex on users(location); // add index to location field 
+DROP INDEX LIndex on users; // deletes a index 
+
+// user_id is going to be a int but this is going to be our foreign key ok, so what that means is this is going to correspond to the ID field in the users table so that we have a link between posts and users 
+// creating a new table 
+// current timestamp is sort of like using the now() function except we don't have to manually publish the date ourselves it'll get done automatically
+// you can use a DEFAULT of anything 
+// A FOREIGN KEY is a field (or collection of fields) in one table that refers to the PRIMARY KEY in another table. // so we're basically linking one table to another IDs
+
+CREATE TABLE posts (
+   id INT AUTO_INCREMENT,
+   user_id INT,
+   title VARCHAR(100),
+   body TEXT,
+   publish_date DATETIME DEFAULT CURRENT_TIMESTAMP, 
+   PRIMARY KEY(id),
+   FOREIGN KEY(user_id) REFERENCES users(id),
+);
+
+INSERT INTO posts(user_id, title, body) VALUES (1, 'Post One', 'This is post one'),(3, 'Post Two', 'This is post two'),(1, 'Post Three', 'This is post three'),(2, 'Post Four', 'This is post four'),(5, 'Post Five', 'This is post five'),(4, 'Post Six', 'This is post six'),(2, 'Post Seven', 'This is post seven'),(1, 'Post Eight', 'This is post eight'),(3, 'Post Nine', 'This is post none'),(4, 'Post Ten', 'This is post ten');
+
+// we just need these three things as publish date is already done and id is already done for us 
+
+SELECT * FROM posts; // see all
+
+// there are different types of joins, there's inner joins which will return rows when there's a match in both tables we have left joins which will return all rows from the left table even if there's no matches and there's right join to even if there's no matches in the left table 
+// inner joins is what you will use the most 
+// now it needs to know where to match these two tables and that's with the foriegn key so the primrary key on the users table to the foreign key on the post table so we say ON users.id which is the primary key of the users and then match that against the posts.user_id which is that foriegn key that we created.  
+
+SELECT 
+users.first_name,
+users.last_name,
+posts.title,
+posts.publish_date
+FROM users
+INNER JOIN posts
+ON users.id = posts.user_id
+ORDER BY posts.title;
+
+
+// two foreign keys 
+// now comments are gonna have two foreign keys they're going to have a post ID because it needs to be related to a post and also user ID because a user left the comment  
+
+CREATE TABLE comments(
+	id INT AUTO_INCREMENT,
+    post_id INT,
+    user_id INT,
+    body TEXT,
+    publish_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(post_id) REFERENCES posts(id)
+);
+
+// comments of a post VVV don't understand 
+
+SELECT 
+comments.body,
+posts.title
+From comments
+LEFT JOIN posts ON posts.id = comments.post_id
+ORDER BY posts.title
+
+SELECT 
+comments.body,
+posts.title,
+users.last_name
+FROM comments 
+INNER JOIN posts ON posts.id = comments.post_id
+INNER JOIN users ON users.id = comments.user_id
+ORDER BY posts.title;
+
+body                 title       first_name   last_name 
+This is comment one  Post One    John         Doe
+
+This is the beauty of relational databases is having everything in their own isolated table but we can easily join these tables together and we can combine the data and we can make any queries we want based on those relations between the foreign keys and the private keys. 
+
+Aggregate Functions (COUNT, MIN, MAX) 
+
+SELECT COUNT(id) FROM users; //5 as there are 5 users 
+
+SELECT COUNT(id) FROM posts; // 10 as we have ten posts 
+
+SELECT COUNT(id) FROM comments; // we have 9 comments 
+
+SELECT MAX(age) FROM users; // to get max number 
+
+SELECT MIN(age) FROM users; // to get minimum number 
+
+SELECT SUM(age) FROM users; // to add all in age column for example 
+
+SELECT UCASE(first_name), LCASE(last_name) FROM users; // uppercase and lowercase 
+
+SELECT location, COUNT(location) FROM users WHERE location = "New York" GROUP by location; // tally up how many people from each location 
+
+
+
+
+
+
+
+
